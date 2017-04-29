@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="fullscreen" value="false" />
+    <string name="fontsize">33</string>
+    <string name="current_session">57bafc1a-b9ec-4f83-8927-9fe5b2032e87</string>
+    <boolean name="show_extra_keys" value="true" />
+    <boolean name="intro_dialog" value="false" />
+</map>

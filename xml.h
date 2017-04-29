@@ -6,19 +6,23 @@
 #include <string>
 #include <fstream>
 #include <map>
+#include <stack>
 #include <stdexcept>
 #include <iostream>
-#define DEBUG
+//#define DEBUG
+//#define STREAM
 using std::vector;
 using std::map;
 using std::stringstream;
 using std::string;
 using std::ifstream;
+using std::stack;
 
 /**
  * debug
  */
-void debug(const string &msg)
+template <typename T>
+void debug(const T &msg)
 {
 #ifdef DEBUG
     std::cout<<msg; 
@@ -45,7 +49,7 @@ class xml_tag
 protected:
     /* < />   < > </> */
     /* 类型名 */
-    string type;
+    string _type;
     /* 属性集合 */
     std::map<string,string> _attribute_set;
     /* 内部标签 */
@@ -53,6 +57,27 @@ protected:
     /* 文本 */
     string inner_text;
 public:
+    /* 类型 */
+    string & type(const string & _t = "")  
+    {
+        if (_t.length() > 0)
+        {
+            return _type = _t;
+        }else {
+            return _type;
+        }
+    }
+
+    /* 文本 */
+    string & text (const string & _t = "") {
+         if (_t.length() > 0)
+        {
+            return inner_text = _t;
+        }else {
+            return inner_text;
+        }
+    }
+
     /* 增删属性 */
      string  & operator[](const string & name)  
     {
@@ -93,13 +118,18 @@ class xml
 {
 private:
     /* 内容缓冲 */
-    stringstream ss; 
+    vector<char> doc; 
     /* 对象/类型 缓冲 */
     stringstream _type;
     /* 属性名缓冲 */
-    stringstream _attr;
+    stringstream _attr; 
     /* 属性值缓冲 */
     stringstream _value;
+    /* 文本缓冲 */
+    stringstream _text;
+  
+    /* 正在解析 */
+    string parsing;
     /* 错误信息 */
     xml_error _error;
     /* 头标签 */
@@ -110,24 +140,35 @@ private:
     _status status;
     /* 当前字符 */
     char ch;
+    /* 取出来的字符 */
+    stack<char> _past;
+    /* 放回去的字符 */
+    stack<char> _unget;
+    /* 前看一个字符 */
+    bool look_ahead;
     /* 获得下一个字符 */
     char getch();
     /* 放回字符 */
+    void unget();
     /* 去除空白 */
-    void skip();
+    bool skip();
+    /* 解析类型 */
+    void parse_type();
     /* 解析属性名 */
     void parse_attr();
     /* 解析属性值 */
     void parse_value();
+    /* 解析内容 */
+    void parse_text();
     /* 解析头标签 */;
     void parse_header();
     /*解析普通标签 */
-    void parse_tag();
+     xml_tag & parse_tag();
 
 public:
-    xml(const string & _raw ):ss(_raw) {}
+    xml(const string & _raw ) {}
     xml(){}
-    xml(const char * _raw) :ss(_raw) {} 
+    xml(const char * _raw){} 
    
     void parse();
     /* 解析字符串 */

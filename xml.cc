@@ -12,13 +12,11 @@ void xml::parse_file(const string &filename)
        throw std::runtime_error("无法打开文件");
     }
 
-    ss.str("");
-    ss.clear();
 
     char bit;
     while (! inf.eof()) {
         inf.read(&bit,1);
-        ss<<bit;
+        doc.push_back(bit);
     }
 
     inf.close();
@@ -30,10 +28,12 @@ void xml::parse_file(const string &filename)
  */
 void xml::parse()
 {
+    look_ahead = false;
+    _error = xml_error("no error");
     try {
         parse_header();
-        while (ss.good()) {
-            parse_tag();
+        while (true) {
+         _tags.push_back( parse_tag());
         }
     }catch (std::runtime_error e) {
         _error = xml_error(e.what());
@@ -45,49 +45,92 @@ void xml::parse()
  */
 char xml::getch()
 {
-    ss>>ch;
-    string chh = &ch;
-    debug(chh);
+    if (!_unget.empty()) {
+        ch = _unget.top();
+        _unget.pop();
+    } else {
+        if (doc.empty()) {
+            throw std::runtime_error("finish");
+        }
+        ch = doc.front(); 
+        doc.erase(doc.begin());
+    }
+    _past.push(ch);
+#ifdef STREAM 
+    debug(ch);
+#endif
+
     return ch;
 }
+/* 放回 */
+void xml::unget()
+{
+    char t = _past.top();
+    _unget.push(t);
+    _past.pop();
+}
 
-void xml::skip()
+bool xml::skip()
 {
     while (getch()) {
         if (ch == ' ') continue;
         if (ch == '\n') continue;
-        else break;
+        else {
+            unget();
+            break;
+        }
     }
+    return true;
 }
 
+
+void xml::parse_type()
+{
+    skip();
+    _type.str("");
+    _type.clear();
+    
+    while(getch()) {
+            if (ch == ' ' || ch == '\n')  break;
+            if (ch == '>') {
+                unget();
+                break;
+            }
+            _type<<ch;
+    }
+    debug("type:"+_type.str() + "\n");
+
+}
 /**
  * 解析属性名
  */
 void xml::parse_attr() 
 {
+    skip();
     _attr.str("");
     _attr.clear();
-    while(true) {
+    while(getch()) {
             if (ch == ' ') {
-                skip();
                 break;
-            }else if (ch == '=') {
+            }else if (ch == '=' || ch == '>') {
+                unget();
                 break;
             }
             _attr<<ch;
-            getch();
     }
 
-    debug("attr:"+_attr.str());
+   debug("attr:"+_attr.str() + " ");
 }
 /**
  * 解析属性值
  */
 void xml::parse_value()
 {
+    skip();
     _value.str("");
      _value.clear();
-    
+   
+     getch();
      if(ch != '\'' && ch != '\"') {
             throw std::runtime_error("应该是 ''' 或者 '\"' :");
         }
@@ -96,7 +139,27 @@ void xml::parse_value()
             if (ch == be) break;
             _value<<ch;
         }
-        debug("value:"+_value.str());
+        debug("value:"+_value.str() + "\n");
+}
+
+/**
+ * 解析文本 
+ */
+void xml::parse_text()
+{
+    skip();
+    _text.str("");
+    _text.clear();
+    while (getch()) {
+        if (ch == '<') {
+            unget();
+            break;
+        }else {
+            _text<<ch;
+        }
+    }
+
+    debug("text:"+_text.str() + "\n");
 }
 
 /**
@@ -107,29 +170,29 @@ void xml::parse_header()
     
 
     skip();
-    char s[2];
-    ss>>s;
-    if(string("<?") != string(s)) throw std::runtime_error("缺少开始符号");
-    skip();
-    char _xml[4];
-    ss>>_xml;
-    if (string("xml") != string(_xml)) {
+    getch();
+    if (ch != '<') throw std::runtime_error("需要 <");
+    getch();
+    if (ch != '?') throw std::runtime_error("需要 ?");
+
+    parse_type();
+    if (string("xml") != _type.str()) {
         throw std::runtime_error("缺少'xml'");
     }
 
-    while (ss.good() ) {
+    while (!doc.empty()) {
         skip();
-            if (ch == '?' ) {
-               getch();
-                if (ch == '>') {
-                   throw std::runtime_error("头标签解析结束");
+            if (getch() == '?' ) {
+                if (getch() == '>') {
                     break;
                 }else {
                     throw std::runtime_error("应该是以 '>' 结尾");
                 } 
+            }else {
+                unget();
             }
         parse_attr(); 
-        if(ch != '=') throw std::runtime_error("需要 =");
+        if(getch() != '=') throw std::runtime_error("需要 =");
         skip();
         parse_value();
         _header[_attr.str()]= _value.str();
@@ -141,10 +204,86 @@ void xml::parse_header()
 /**
  * 解析标签
  */
-void xml::parse_tag()
+xml_tag & xml::parse_tag()
 {
+    skip();
+     xml_tag *tag = new xml_tag;
+     if(getch() != '<') {
+         throw std::runtime_error("需要 <");
+     } 
 
+    /* 解析类型 */
+    parse_type();
+    parsing = tag->type( _type.str());
+    debug("开始解析:"+tag->type()+"\n");
+    /* 解析属性 */
+    while (skip()) {
+        /* 碰到 '/>' 解析结束 */
+        if (getch() == '/') {
+            if (getch() == '>') {
+                debug("返回:"+tag->type()+"\n");
+                return *tag;
+            }else {
+                throw std::runtime_error("需要 '>'");
+            }
+        }else {
+            unget();
+        }
+        /* 碰到 '>' 向下解析 */
+        if (getch() == '>') {
+            break;
+        }else {
+            unget();
+        }
+        
+
+        parse_attr();
+        skip();
+        if (getch() != '=') {
+            throw std::runtime_error("缺少 '='");
+        }else {
+        }
+        skip();
+        parse_value();
+
+        (*tag)[_attr.str()] = _value.str();
+ 
+    }
+
+    /* 解析节点内容 */
+    skip();
+    /* 是否文本 */
+    if(getch() != '<') {
+        unget();
+        debug("文本\n");
+        parse_text();
+    }else {
+        debug("碰到'<'\n");
+        unget();
+    }
+    /* 是否结束 */
+    while (skip() ) {
+        getch();
+        if (ch != '<') {
+            throw std::runtime_error("此处必须为 '<'");
+        }
+        if (getch() == '/') {
+            parse_type();
+            debug("关闭标签:"+_type.str()+"\n");
+            skip();
+            getch();
+            return *tag;
+        }
+#define STREAM
+        unget();
+        unget();
+#undef STREAM
+        (*tag)<<parse_tag();
+    }
+
+    return *tag;
 }
+
 
 
 
@@ -159,9 +298,9 @@ int main ()
 {
     xml _xml;
     _xml.parse_file("a.xml");
-    std::cout<<"result:"<<_xml.error().msg<<std::endl;
+    std::cout<<"解析结果:"<<_xml.error().msg<<std::endl;
     xml_tag h = _xml.header();
+    std::cout<<h["version"];
 
-   debug("版本:"+h["version"]);
-   debug("编码:"+h["encoding"]);
+
 }
