@@ -9,5 +9,6 @@ int main ()
     string t = n.type();
     printf("第一个节点:%s\n",n.type().c_str());
     printf("宽:%s\n",n["android:layout_width"].c_str());
+
     return 0;
 }
