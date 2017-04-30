@@ -62,13 +62,17 @@ void xml::unget()
 {
     char t = _past.top();
     doc.insert(doc.begin(),t);
+    //debug("放回:"+t);
     _past.pop();
 }
 
 bool xml::skip()
 {
     while (getch()) { 
-        if (ch != ' ' && ch != '\n' && ch != '\r' && ch!= '\0') {
+        //过滤不可见字符
+        if ((0 <= ch && ch <= 32 ) || ch == 127) {
+            continue;
+        }else  {
             unget();
             break;
         }
