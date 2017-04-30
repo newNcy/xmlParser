@@ -9,7 +9,7 @@
 #include <stack>
 #include <stdexcept>
 #include <iostream>
-//#define DEBUG
+#define DEBUG
 //#define STREAM
 using std::vector;
 using std::map;

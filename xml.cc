@@ -45,17 +45,12 @@ void xml::parse()
  */
 char xml::getch()
 {
-    if (!_unget.empty()) {
-        ch = _unget.top();
-        _unget.pop();
-    } else {
         if (doc.empty()) {
             throw std::runtime_error("finish");
         }
-        ch = doc.front(); 
+        ch = doc[0]; 
         doc.erase(doc.begin());
-    }
-    _past.push(ch);
+        _past.push(ch);
 #ifdef STREAM 
     debug(ch);
 #endif
@@ -66,16 +61,14 @@ char xml::getch()
 void xml::unget()
 {
     char t = _past.top();
-    _unget.push(t);
+    doc.insert(doc.begin(),t);
     _past.pop();
 }
 
 bool xml::skip()
 {
-    while (getch()) {
-        if (ch == ' ') continue;
-        if (ch == '\n') continue;
-        else {
+    while (getch()) { 
+        if (ch != ' ' && ch != '\n' && ch != '\r' && ch!= '\0') {
             unget();
             break;
         }
@@ -222,6 +215,7 @@ xml_tag & xml::parse_tag()
         if (getch() == '/') {
             if (getch() == '>') {
                 debug("返回:"+tag->type()+"\n");
+                skip();
                 return *tag;
             }else {
                 throw std::runtime_error("需要 '>'");
@@ -251,36 +245,35 @@ xml_tag & xml::parse_tag()
     }
 
     /* 解析节点内容 */
-    skip();
-    /* 是否文本 */
+    while (skip() ) {
+        /* 是否文本 */
     if(getch() != '<') {
         unget();
         debug("文本\n");
         parse_text();
+        tag->text(_text.str());
     }else {
-        debug("碰到'<'\n");
-        unget();
-    }
+    
     /* 是否结束 */
-    while (skip() ) {
-        getch();
-        if (ch != '<') {
-            throw std::runtime_error("此处必须为 '<'");
-        }
+    
         if (getch() == '/') {
             parse_type();
             debug("关闭标签:"+_type.str()+"\n");
             skip();
-            getch();
+            if (getch() != '>') 
+            {
+                throw std::runtime_error("需要 '>'");
+            }
             return *tag;
         }
-#define STREAM
         unget();
         unget();
-#undef STREAM
         (*tag)<<parse_tag();
     }
 
+    }
+
+    
     return *tag;
 }
 
@@ -297,7 +290,7 @@ const xml_tag & xml::header() const
 int main ()
 {
     xml _xml;
-    _xml.parse_file("a.xml");
+    _xml.parse_file("d.xml");
     std::cout<<"解析结果:"<<_xml.error().msg<<std::endl;
     xml_tag h = _xml.header();
     std::cout<<h["version"];
