@@ -1,6 +1,0 @@
-<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
-<map>
-    <string name="username">admin</string>
-    <string name="password">admin</string>
-    <int name="permission" value="-1" />
-</map>

@@ -1,9 +1,0 @@
-
-
-c  <C-R><C-G>  *@fnameescape(<SNR>45_recall())
-!  <Plug>(_incsearch-nohlsearch) * incsearch#autocmd#auto_nohlsearch(0)
-!  <Plug>(_incsearch-searchforward) * <Nop>
-!  <Plug>(_incsearch-hlsearch) * <Nop>
-!  <Plug>(_incsearch-esc) * <Nop>
-!  <Plug>(_incsearch-gv) * <Nop>
-!  <Plug>(_incsearch-winrestview) * <Nop>
