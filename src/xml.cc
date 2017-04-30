@@ -1,4 +1,4 @@
-#include "xml.h"
+#include "../include/xml.h"
 
 
 /**
@@ -299,13 +299,4 @@ const vector <node> & xml::nodes()const
 {
     return _nodes;
 }
-int main ()
-{
-    xml _xml;
-    _xml.parse_file("main.xml");
-    std::cout<<"解析结果:"<<_xml.error().msg<<std::endl;
-    node h = _xml.header();
-    std::cout<<"版本:"<<h["version"]<<std::endl;
-    vector <node> nodes = _xml.nodes();
-    std::cout<<nodes[0].type();
-}
+

@@ -8,7 +8,6 @@
 #include <map>
 #include <stack>
 #include <stdexcept>
-#include <iostream>
 #include "node.h"
 
 //#define DEBUG
@@ -24,6 +23,7 @@ using std::stack;
  * debug
  */
 #ifdef DEBUG
+#include <iostream>
 int tabs = 0;
 #endif
 template <typename T>
