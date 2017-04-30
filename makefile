@@ -1,11 +1,11 @@
 
-test:test.cc 
-	g++ test.cc node.o xml.o -o test
-libxml.a:xml.o node.o
-	ar cr libxml.a node.o xml.o
-xml.o:xml.cc  xml.h
-	g++ -c xml.cc  -std=c++14
-node.o:node.cc node.h
-	g++ -c node.cc
+test:test.cc ./lib/libxml.a
+	g++ test.cc -o test  -L./lib -lxml
+./lib/libxml.a:./temp/xml.o ./temp/node.o
+	ar cr ./lib/libxml.a ./temp/node.o ./temp/xml.o
+./temp/xml.o:./src/xml.cc  ./include/xml.h
+	g++ -c ./src/xml.cc  -std=c++14 -o ./temp/xml.o
+./temp/node.o:./src/node.cc ./include/node.h
+	g++ -c ./src/node.cc  -o ./temp/node.o
 clean:
-	rm -f node.o  xml.o libxml.a test
+	rm -f ./temp/* ./lib/* test

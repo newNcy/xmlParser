@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include "node.h"
 
-//#define DEBUG
+#define DEBUG
 //#define STREAM
 using std::vector;
 using std::map;
@@ -24,15 +24,11 @@ using std::stack;
  */
 #ifdef DEBUG
 #include <iostream>
-int tabs = 0;
 #endif
 template <typename T>
 void debug(const T &msg)
 {
 #ifdef DEBUG
-    for (int i = 0;i<tabs;i++) {
-        std::cout<<"\t";
-    }
     std::cout<<msg; 
 #endif
 }
@@ -107,6 +103,8 @@ private:
     void unget();
     /* 去除空白 */
     bool skip();
+    /* 解析注释 */
+    void parse_note();
     /* 解析类型 */
     void parse_type();
     /* 解析属性名 */

@@ -149,6 +149,7 @@ void xml::parse_text()
     _text.clear();
     while (getch()) {
         if (ch == '<') {
+            parse_note();
             unget();
             break;
         }else {
@@ -157,6 +158,27 @@ void xml::parse_text()
     }
 
     debug("文本:"+_text.str() + "\n");
+}
+
+void xml::parse_note()
+{
+    if (getch() != '!') {
+        unget();
+        return;
+    }
+
+    if (getch() != '-' || getch() != '-') {
+        throw std::runtime_error("注释必须以 '<!--'开始");
+    }
+    while(getch()) {
+        if (ch == '-') {
+            if(getch() != '-' || getch() != '>') {
+                throw std::runtime_error("注释必须以 '-->' 结束");
+            }
+            break;
+        }
+    }
+
 }
 
 /**
@@ -169,6 +191,7 @@ void xml::parse_header()
     skip();
     getch();
     if (ch != '<') throw std::runtime_error("需要 <");
+     parse_note();
     getch();
     if (ch != '?') throw std::runtime_error("需要 ?");
 
@@ -208,6 +231,7 @@ node & xml::parse_node()
      if(getch() != '<') {
          throw std::runtime_error("需要 <");
      } 
+    parse_note();
 
     /* 解析类型 */
     parse_type();
@@ -257,6 +281,7 @@ node & xml::parse_node()
         parse_text();
         _node->text(_text.str());
     }else {
+    parse_note();
     
     /* 是否结束 */
     
