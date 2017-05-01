@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <fstream>
+#include <cstring>
 #include <map>
 #include <stack>
 #include <stdexcept>
@@ -46,13 +47,7 @@ public:
 };
 
 
-/**
- * 头标签
- * */
-class xml_header:public node
-{
 
-};
 
 /**
  * 解析状态枚举
@@ -69,7 +64,9 @@ class xml
 {
 private:
     /* 内容缓冲 */
-    vector<char> doc; 
+    //vector<char> doc; 
+    char * doc;
+    int size;
     /* 对象/类型 缓冲 */
     stringstream _type;
     /* 属性名缓冲 */
@@ -87,16 +84,10 @@ private:
     node _header;
     /* 标签存放 */
     vector<node> _nodes;
-    /* 是否正在解析value */
-    _status status;
     /* 当前字符 */
     char ch;
-    /* 取出来的字符 */
-    stack<char> _past;
-    /* 放回去的字符 */
-    stack<char> _unget;
-    /* 前看一个字符 */
-    bool look_ahead;
+    /* 字符位置 */
+    int position;
     /* 获得下一个字符 */
     char getch();
     /* 放回字符 */
@@ -134,7 +125,7 @@ public:
     /* 获取头标签 */
     const  node & header() const;
     const vector <node> & nodes() const ;
-    ~xml(){}
+    ~xml();
 
 };
 

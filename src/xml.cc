@@ -12,15 +12,24 @@ void xml::parse_file(const string &filename)
        throw std::runtime_error("无法打开文件");
     }
 
+    inf.seekg(0,std::ios::end);
 
     char bit;
-    while (! inf.eof()) {
-        inf.read(&bit,1);
-        doc.push_back(bit);
-    }
+    size = inf.tellg();
+    doc = new char[size];
+    inf.seekg(0,std::ios::beg);
+    inf.read(doc,size);
 
     inf.close();
     parse();
+}
+
+void xml::parse(const string & _doc) 
+{
+    const char * tdoc = _doc.c_str();
+    size = _doc.length();
+    doc = new char[size];
+    strcpy(doc,tdoc);
 }
 
 /**
@@ -28,7 +37,7 @@ void xml::parse_file(const string &filename)
  */
 void xml::parse()
 {
-    look_ahead = false;
+    position = 0;
     _error = xml_error("no error");
     try {
         parse_header();
@@ -45,12 +54,12 @@ void xml::parse()
  */
 char xml::getch()
 {
-        if (doc.empty()) {
+        if (position == size -1) {
+            delete doc;
+            doc = NULL;
             throw std::runtime_error("finish");
         }
-        ch = doc[0]; 
-        doc.erase(doc.begin());
-        _past.push(ch);
+        ch = doc[position++]; 
 #ifdef STREAM 
     debug(ch);
 #endif
@@ -60,10 +69,7 @@ char xml::getch()
 /* 放回 */
 void xml::unget()
 {
-    char t = _past.top();
-    doc.insert(doc.begin(),t);
-    //debug("放回:"+t);
-    _past.pop();
+    position --;
 }
 
 bool xml::skip()
@@ -200,7 +206,7 @@ void xml::parse_header()
         throw std::runtime_error("缺少'xml'");
     }
 
-    while (!doc.empty()) {
+    while (true) {
         skip();
             if (getch() == '?' ) {
                 if (getch() == '>') {
@@ -323,5 +329,11 @@ const node & xml::header() const
 const vector <node> & xml::nodes()const 
 {
     return _nodes;
+}
+
+/* 析构
+ */
+xml::~xml()
+{
 }
 
