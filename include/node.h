@@ -28,9 +28,13 @@ public:
     /* 文本 */
     string & text(const string & _t = "");
     /* 增删属性 */
-    string  & operator[](const string & name);
+    string  & operator[](const string& name);
+    string  & attr(const string& name);
     /* 追加 内部标签 */
     const node & operator << (const node &newinner );
+    const node & add_node(const node &newinner );
+    /* 获取内部标签 */
+    const vector<node> & inner() const;
 
 };
 

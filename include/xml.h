@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include "node.h"
 
-#define DEBUG
+//#define DEBUG
 //#define STREAM
 using std::vector;
 using std::map;

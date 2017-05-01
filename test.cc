@@ -5,11 +5,11 @@ int main ()
 {
     xml x;
     x.parse_file("xml/main.xml");
-    node n = x.nodes()[0];
+    vector<node> nodes = x.nodes()[0].inner();
+    node n = nodes[0].inner()[1].inner()[0];
     string t = n.type();
-    printf("第一个节点:%s\n",n.type().c_str());
-    printf("宽:%s\n",n["android:layout_width"].c_str());
-    printf("高:%s\n",n["android:layout_height"].c_str());
-
+    printf("类型:%s\n",t.c_str());
+    printf("文本:%s\n",n["android:text"].c_str());
+    printf("id:%s\n",n["android:id"].c_str());
     return 0;
 }
