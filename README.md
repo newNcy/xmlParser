@@ -1,4 +1,5 @@
-<h1>this is a simple xml parser </h1>>
+this is a simple xml parser
+===========================
 
 <p>to use it , yiu should include its header file</p>
 
