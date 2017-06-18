@@ -3,6 +3,7 @@
 
 int main ()
 {
+
     xml x;
     x.parse_file("xml/main.xml");
     vector<node> nodes = x.nodes()[0].inner();
